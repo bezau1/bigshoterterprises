@@ -10,16 +10,13 @@
   src: url("Determination.ttf") format("truetype");
 }
 
-* {
-  box-sizing: border-box;
-}
-
 body {
   margin: 0;
   font-family: "Determination", monospace;
   background: black;
   color: white;
   overflow: hidden;
+  transition: filter 2s, background 2s;
 }
 
 #noise {
@@ -27,12 +24,13 @@ body {
   inset: 0;
   background: repeating-linear-gradient(
     0deg,
-    rgba(255,255,255,0.02),
-    rgba(255,255,255,0.02) 1px,
+    rgba(255,255,255,0.03),
+    rgba(255,255,255,0.03) 1px,
     transparent 1px,
     transparent 2px
   );
   pointer-events: none;
+  z-index: 999;
 }
 
 .container {
@@ -46,25 +44,22 @@ body {
 
 h1 {
   font-size: 64px;
-  letter-spacing: 2px;
-  animation: glitch 0.2s infinite alternate;
+  animation: glitch 0.15s infinite alternate;
 }
 
 p {
   font-size: 20px;
-  opacity: 0.9;
 }
 
 button {
   margin-top: 40px;
-  padding: 20px 50px;
+  padding: 20px 60px;
   font-size: 32px;
   font-family: inherit;
   background: yellow;
-  color: black;
   border: 4px solid white;
   cursor: pointer;
-  animation: shake 0.15s infinite;
+  animation: shake 0.12s infinite;
 }
 
 button:hover {
@@ -72,23 +67,37 @@ button:hover {
   color: white;
 }
 
+.popup {
+  position: absolute;
+  background: #111;
+  border: 2px solid white;
+  padding: 8px;
+  font-size: 14px;
+  animation: glitch 0.1s infinite alternate;
+}
+
+#googleBlock {
+  position: fixed;
+  inset: 0;
+  background: #111;
+  color: white;
+  display: none;
+  z-index: 1000;
+  padding: 40px;
+}
+
+#googleBlock h2 {
+  color: red;
+}
+
 @keyframes glitch {
-  from { transform: translate(0, 0); }
-  to { transform: translate(2px, -2px); }
+  from { transform: translate(0,0); }
+  to { transform: translate(2px,-2px); }
 }
 
 @keyframes shake {
   from { transform: translateX(-2px); }
   to { transform: translateX(2px); }
-}
-
-.popup {
-  position: absolute;
-  background: #111;
-  border: 2px solid white;
-  padding: 10px;
-  font-size: 14px;
-  animation: glitch 0.1s infinite alternate;
 }
 </style>
 </head>
@@ -96,57 +105,87 @@ button:hover {
 <body>
 <div id="noise"></div>
 
-<div class="container">
-  <h1>BIG SHOT<br>ENTERPRISES™</h1>
-  <p>NOW HIRING [[BIG SHOTS]]</p>
-  <p>SUCCESS IS ONLY ONE CLICK AWAY</p>
+<div id="googleBlock">
+  <h2>Deceptive site ahead</h2>
+  <p>Attackers on <b>bigshotenterprises</b> may trick you into doing something dangerous.</p>
+  <p><small>Error code: BIG_SHOT_404</small></p>
+</div>
 
-  <button onclick="join()">REGISTER NOW</button>
+<div class="container">
+  <h1 id="title">BIG SHOT<br>ENTERPRISES™</h1>
+  <p id="tagline">NOW HIRING [[BIG SHOTS]]</p>
+  <button onclick="join()">REGISTER</button>
 </div>
 
 <script>
-/* REAL annoying popups */
-setInterval(() => {
-  const r = Math.random();
-  if (r < 0.3) alert("ERROR: CONNECTION UNSTABLE");
-  else if (r < 0.6) confirm("ALLOW BIG SHOT ENTERPRISES™ TO ACCESS YOUR FUTURE?");
-  else prompt("ENTER YOUR [KROMER]");
-}, 8000);
+// --- ARG CLUE ---
+console.log("THE DEAL IS STILL ON. TRY LOOKING AT WHAT CHANGES.");
 
-/* Fake floating popups */
-function spawnPopup() {
-  const div = document.createElement("div");
-  div.className = "popup";
-  div.textContent = [
-    "HYPERLINK BLOCKED",
-    "SIGNAL LOST",
-    "DEAL PENDING",
-    "PAYMENT REQUIRED",
-    "BIG SHOT DETECTED",
-    "ERROR ERROR ERROR"
-  ][Math.floor(Math.random() * 6)];
-
-  div.style.left = Math.random() * 90 + "vw";
-  div.style.top = Math.random() * 90 + "vh";
-
-  document.body.appendChild(div);
-
-  setTimeout(() => div.remove(), 4000);
+// Web Audio glitch beep
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+function beep() {
+  const o = ctx.createOscillator();
+  o.type = "square";
+  o.frequency.value = 80 + Math.random() * 800;
+  o.connect(ctx.destination);
+  o.start();
+  o.stop(ctx.currentTime + 0.05);
 }
 
-setInterval(spawnPopup, 1200);
-
-/* Screen jitter */
+// Real browser popups
 setInterval(() => {
-  document.body.style.transform =
-    `translate(${Math.random()*4-2}px, ${Math.random()*4-2}px)`;
-}, 100);
+  beep();
+  if (Math.random() < 0.5) alert("HYPERLINK BLOCKED");
+}, 9000);
 
-/* JOIN button */
+// Floating fake popups
+setInterval(() => {
+  const d = document.createElement("div");
+  d.className = "popup";
+  d.textContent = ["SIGNAL LOST","PAYMENT REQUIRED","BIG SHOT DETECTED","ERROR"][Math.floor(Math.random()*4)];
+  d.style.left = Math.random()*90+"vw";
+  d.style.top = Math.random()*90+"vh";
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),3000);
+}, 1000);
+
+// Corruption over time
+let corruption = 0;
+setInterval(() => {
+  corruption++;
+  document.body.style.filter = `hue-rotate(${corruption*5}deg) contrast(${1+corruption*0.05})`;
+  if (corruption === 5) {
+    document.getElementById("googleBlock").style.display = "block";
+  }
+  if (corruption > 7) {
+    document.getElementById("googleBlock").style.display = "none";
+  }
+}, 7000);
+
+// Text mutation
+setInterval(() => {
+  const t = document.getElementById("tagline");
+  t.textContent = Math.random() > 0.5
+    ? "SUCCESS IS GUARANTEED"
+    : "NO REFUNDS. EVER.";
+}, 4000);
+
+// JOIN logic (sometimes refuses)
+let attempts = 0;
 function join() {
+  attempts++;
+  if (attempts < 3 && Math.random() < 0.7) {
+    alert("TRANSACTION FAILED");
+    return;
+  }
   alert("WELCOME, [[BIG SHOT]]");
   window.location.href = "https://nubertislife.com/deltarune404/";
 }
+
+/*
+HIDDEN NOTE:
+BIGSHOT = 66 73 67 68 6F 74
+*/
 </script>
 </body>
 </html>
